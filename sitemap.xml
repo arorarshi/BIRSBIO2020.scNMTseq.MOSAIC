@@ -1,12 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://seandavi.github.io/sars2pack/index.html</loc>
+    <loc>https://github.com/arorarshi/BIRSBIO2020.scNMTseq.MOSAIC/index.html</loc>
   </url>
   <url>
-    <loc>https://seandavi.github.io/sars2pack/articles/HOWTO_BUILD_WORKSHOP.html</loc>
+    <loc>https://github.com/arorarshi/BIRSBIO2020.scNMTseq.MOSAIC/reference/cv.stats.html</loc>
   </url>
   <url>
-    <loc>https://seandavi.github.io/sars2pack/articles/workshop_example.html</loc>
+    <loc>https://github.com/arorarshi/BIRSBIO2020.scNMTseq.MOSAIC/reference/lineage.all.html</loc>
+  </url>
+  <url>
+    <loc>https://github.com/arorarshi/BIRSBIO2020.scNMTseq.MOSAIC/reference/solnk.html</loc>
+  </url>
+  <url>
+    <loc>https://github.com/arorarshi/BIRSBIO2020.scNMTseq.MOSAIC/reference/stage.html</loc>
+  </url>
+  <url>
+    <loc>https://github.com/arorarshi/BIRSBIO2020.scNMTseq.MOSAIC/articles/MOSAIC_scNMTseq_analysis.html</loc>
+  </url>
+  <url>
+    <loc>https://github.com/arorarshi/BIRSBIO2020.scNMTseq.MOSAIC/articles/howtorun_MOSAIC.html</loc>
   </url>
 </urlset>
