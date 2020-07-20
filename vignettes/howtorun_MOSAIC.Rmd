@@ -1,0 +1,52 @@
+---
+title: "How to run MOSAIC"
+author: Arshi Arora^[arshiaurora@gmail.com]
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{How to run MOSAIC}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = FALSE,
+  comment = "#>"
+)
+```
+
+In this package we provide the following datasets: 
+
+1. `cv.stats`: This .Rdata object is the output of MOSAIC after running it for 50 rounds of 5-fold cross validation for all 13 - RNA data, 6 DNA Methylation and 6 DNA Accessibility data types. 
+
+2. `solnk`: .Rdata object summarizing the cross validated solution for each data type, picked after comparing their `Adjusted Mutual Information (AMI)` and `Standardized Pooled Within Sum of Squares (SPWSS)` with the outcome of interest. 
+
+For scNMT seq data, MOSAIC was run as follows: 
+
+```{r, eval=FALSE}
+
+bigK = 7
+library(doParallel)
+registerDoParallel(cores=bigK)
+
+library(MOSAIC)
+
+load("stage.rmVisceralEnd.Rdata")
+load("rna.mat.Rdata")
+
+mat<-list(); mat[[1]] =x[names(stage),]
+
+cvrounds<-function(x,out,kk){
+    this.fold=5
+    fit<-list()
+    for (i in 1:50){
+        fit[[i]] = cv.mosaic(x, out,kk,this.fold)
+
+    }
+    print(paste0("finished ", this.fold, " rounds for k= ", kk))
+    return(fit)
+}
+
+cv.fit<-foreach(kk=2:bigK) %dopar% cvrounds(mat,stage,kk)
+
+```

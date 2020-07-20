@@ -1,28 +1,22 @@
-Package: BuildABiocWorkshop2020
-Title: Bioconductor Workshop Template and Github Actions
-Version: 0.1.1
+Package: BIRSBIO2020.scNMTseq.MOSAIC
+Title: MSOAIC analysis on scNMTseq data
+Version: 1.0.0
 Authors@R: 
-    person(given = "Sean",
-           family = "Davis",
+    person(given = "Arshi",
+           family = "Arora",
            role = c("aut", "cre"),
-           email = "seandavi@gmail.com",
-           comment = c(ORCID = "your-orc-id-here"))
-Description: This package serves as a template for using github actions to 
-    prepare a Bioconductor Workshop package for use. In particular,
-    a pkgdown website and docker image are generated based on workflow 
-    settings. 
+           email = "arshiaurora@gmail.com")
+Description: Multi-Omics Supervised Integrative Clustering (MSOAIC) analysis on scNMTseq data for BIRSBIO2020 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.0
-Depends: 
-    Biobase
-Suggests: 
-    knitr,
-    rmarkdown,
-    pkgdown
-URL: https://seandavi.github.io/BuildABiocWorkshop2020/
-BugReports: https://github.com/seandavi/BuildABiocWorkshop2020/issues/new/choose
+Depends: R (>= 3.6)
+Imports: RColorBrewer, ggsci, aricode, knitr
+Remotes: arorarshi/MOSAIC, arorarshi/panelmap
+Suggests: knitr, rmarkdown
+URL: https://arorarshi.github.io/BIRSBIO2020.scNMTseq.MOSAIC/
+  BugReports: https://github.com/arorarshi/BIRSBIO2020.scNMTseq.MOSAIC/issues/new
 VignetteBuilder: knitr
-DockerImage: seandavi/buildabiocworkshop2020:latest
+DockerImage: arorarshi/birs_bio_2020-scnmtseq-mosaic:latest

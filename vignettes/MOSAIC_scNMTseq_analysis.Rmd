@@ -1,0 +1,221 @@
+---
+title: "MOSAIC analysis on scNMTseq data"
+subtitle: "As presented at BIRSBiointegration 2020"
+author: Arshi Arora^[arshiaurora@gmail.com]
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{MOSAIC analysis on scNMTseq data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = FALSE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+We will be analyzing  [scNMT-seq](https://www.nature.com/articles/s41467-018-03149-4) study via MOSAIC to understand mouse gastrulation on their epigenome and transcriptome profiles to identify multi-omics signatures that characterize stage and lineage. 
+
+[MOSAIC](https://github.com/arorarshi/MOSAIC) or Multi-Omics Supervised Integrative Clustering is a response weighted clustering algorithm inspired by [survClust](https://github.com/arorarshi/survClust), to classify samples into clusters that are relevant to outcome of interest.^1^ 
+
+Each feature in a data type is weighed according to its association with binary or categorical outcome of interest, and a weighted distance matrix is computed ^2^. This reduces the computation space considerably from sample x feature to sample x sample. Samples are then projected into a multi dimensional space preserving the distance between them, and clustered with k-means algorithm to obtain class labels corresponding to outcome.
+
+## Analysis 
+
+We ran MOSAIC for __50 rounds__ of __5-fold__ cross validation for __k=2-7__, with stage and lineage as outcome of interest over 13 data types -
+
+ * RNA
+ * met_CTCF, met_DHS, met_p300, met_genebody, met_promoter, met_cgi
+ * acc_CTCF, acc_DHS, acc_p300, acc_genebody, acc_promoter, acc_cgi 
+
+and integrating all of them, to mine features that are associated with outcome of interest. 
+
+RNA data was standardized, whereas proportion data from other data types was first transformed by taking their folded square root before standardizing. 
+
+All the data was considered, including missing-ness, as MOSAIC can handle incomplete information among features and data types. If a data type had more than 5000 features, the feature space was reduce to top 5000 most variable features.  
+
+We removed samples belonging to Visceral Endoderms. 
+
+## Results 
+
+We analyze MOSAIC obtained cross validated solutions over two metrics - adjusted Mutual Information (AMI) and Standardized Pooled Within Sum of Squares (SPWSS)
+
+### Stage
+```{r, fig.height=4, fig.width=8}
+
+library(BIRSBIO2020.scNMTseq.MOSAIC)
+#library(knitr)
+
+all.rdata<-names(cv.stats)
+plat.col<-c("blue", "purple", "lightblue","darkblue","cyan", "cadetblue", "red", "darkred", "orange","coral","hotpink","brown", "darkolivegreen")
+par(mfrow=c(1,2))
+for (i in 1:length(all.rdata)){
+  if(i==1){plot(x = c(2:7), y=apply(cv.stats[[i]]$AMI, 2, median), col=plat.col[i],type="o", xlab="k cluster", ylab="adjusted MI", bty="l", lwd=1.5, ylim=c(0,1), cex.lab=1.5, cex.axis=1.2)}
+  
+  if(i!=1){lines(x = c(2:7), y=apply(cv.stats[[i]]$AMI, 2, median), col=plat.col[i], type="o",lwd=1.5)}
+  
+}
+legend("topright", all.rdata, col=plat.col, bty="n", lty=1, lwd = 2,ncol = 2, cex=0.9)
+for (i in 1:length(all.rdata)){
+  if(i==1){plot(x = c(2:7), y=apply(cv.stats[[i]]$spwss, 2, median), col=plat.col[i],type="o", xlab="k cluster", ylab="SPWSS", bty="l", lwd=1.5, ylim=c(0,1), cex.lab=1.5, cex.axis=1.2)}
+  
+  if(i!=1){lines(x = c(2:7), y=apply(cv.stats[[i]]$spwss, 2, median), col=plat.col[i], type="o",lwd=1.5)}
+  
+}
+```
+
+* RNA and Met promoter paltforms track close to each other, and are also on top of rest of the platforms in terms of been informative towards stage. 
+
+* acc platforms are not as informative of stage, acc_DHS seemed to be doing the best with AMI  = 0.30. See circomaps below. 
+
+#### Let's take a look at RNA MOSAIC k=5 solution
+
+```{r, fig.height=8, fig.width=8, echo=FALSE}
+lineage.nona<- na.omit(lineage.all)
+lineage.col <- RColorBrewer::brewer.pal(length(unique(lineage.all)), "Set3")
+names(lineage.col) <- names(table(na.omit(lineage.all)))
+           
+stage.col <- RColorBrewer::brewer.pal(length(unique(stage)), "PuBuGn")
+names(stage.col) <- names(table(na.omit(stage)))
+ann_colors = list(stage = stage.col, lineage = lineage.col)
+  
+lineage.all = lineage.all[names(stage)]
+aa=data.frame(stage = stage, lineage=lineage.all)
+rownames(aa) = names(stage)
+cl.col = ggsci::pal_nejm("default")(7)
+kk = solnk[["rna.mat"]] 
+
+kkAMIstage = aricode::AMI(kk, stage[names(kk)])
+knitr::kable(table(kk, stage[names(kk)]), "html", caption=paste0("MOSAIC rna vs stage, AMI= ",round(kkAMIstage,2)), row.names=TRUE )
+AMIrnakkstage = round(kkAMIstage,2)
+kkAMIlin = aricode::AMI(kk, as.character(lineage.nona[names(kk)]))
+knitr::kable(table(kk, lineage.all[names(kk)]), "html", caption=paste0("MOSAIC rna vs lineage, AMI=",round(kkAMIlin,2)), row.names=TRUE )
+
+#From hackathon readme 
+get_hvgs_rna <- function(log_counts = assay(gastru.mae, "rna"), ## a matrix of normalised counts
+                         n_genes = 2000, ## No. of genes
+                         use_bio=TRUE, ## choose based on biological variance or total variance?
+                         do_plot = FALSE ## plot mean-variance dependency pre and post decomposition?
+                         ){ 
+  require(scran)
+  fit <- trendVar(x = log_counts)
+  decomposed_var <- decomposeVar(x = log_counts, fit = fit, use.spikes=FALSE)
+  
+  if (do_plot) {
+    require(ggplot2)
+    ## total variance
+    p_aft <- ggplot(as.data.frame(decomposed_var)) + geom_point(aes(x=mean, y=total), alpha=0.4) +
+      labs(x="mean log expression", y = "total variance")
+    print(p_aft)
+    ## decomposed bio
+    p_bef <- ggplot(as.data.frame(decomposed_var)) + geom_point(aes(x=mean, y=bio), alpha=0.4) +
+      labs(x="mean log expression", y = "decomposed biological variance")
+    print(p_bef)
+  }
+  if (use_bio) {
+    decomposed_var <- decomposed_var[order(-decomposed_var$bio),]
+  } else {
+     decomposed_var <- decomposed_var[order(-decomposed_var$total),]
+  }
+  hvgs <- rownames(decomposed_var)[1:n_genes]
+  return(log_counts[hvgs,])
+}
+
+```
+
+__Let us take a look at some analysis with kmeans__
+
+```{r, eval=F}
+
+scnmtseq_url <- "https://cloudstor.aarnet.edu.au/plus/s/Xzf5vCgAEUVgbfQ/download?path=%2Foutput&files=scnmtseq_gastrulation_mae_826-cells_orderedFeatures.rds"
+gastru.mae <- readRDS(url(scnmtseq_url))
+
+X <- get_hvgs_rna(log_counts = assay(gastru.mae, "rna"), n_genes = 5000, use_bio=FALSE, do_plot = FALSE)
+rna.mat<-scale(t(X), center=T, scale=T)
+
+set.seed(123)
+unwt.dd<-as.matrix(dist(rna.mat[names(stage),]))
+cmd.mat = cmdscale(unwt.dd, nrow(unwt.dd)-1)
+unwtkk = kmeans(cmd.mat, 5, nstart=100)
+unwtkkAMI = aricode::AMI(unwtkk$cluster, stage)
+unwtkkAMIstage = aricode::AMI(unwtkk$cluster, stage[names(unwtkk$cluster)])
+knitr::kable(table(unwtkk$cluster, stage[names(unwtkk$cluster)]), "html", caption=paste0("kmeans rna vs stage, AMI= ",round(unwtkkAMIstage,2)), row.names=TRUE )
+unwtkkAMIlin = aricode::AMI(unwtkk$cluster, as.character(lineage.nona[names(unwtkk$cluster)]))
+knitr::kable(table(unwtkk$cluster, lineage.all[names(unwtkk$cluster)]), "html", caption=paste0("kmeans rna vs lineage, AMI=",round(unwtkkAMIlin,2)), row.names=TRUE )
+```
+
+#### Other MOSAIC solutions
+Make a _circomap_ of remaining subtypes, and stage and lineage classification 
+
+```{r, fig.height=7, fig.width=7, message=FALSE, echo=FALSE}
+
+names(solnk) = all.rdata
+solnk.AMI = round(unlist(lapply(solnk, function(x) aricode::AMI(x, stage[names(x)]))),2)
+tsolnk = solnk[1:12]
+names.circo = paste0(names(solnk),";AMI=", solnk.AMI)
+circo.dat<-list()
+for(i in 1:length(solnk)){
+  
+  cl = solnk[[i]][order(as.numeric(solnk[[i]]))]
+  stage.cl = stage[names(cl)]
+  lineage.cl = lineage.all[names(cl)]
+  
+  tt = cbind(cl, stage.cl, lineage.cl)
+  
+  circo.dat[[i]] = tt  
+  
+}
+names(circo.dat) = names.circo
+gtoplot<-c("cl")
+gcol = cl.col
+gheight = 0.10
+ftoplot<-c("stage.cl","lineage.cl")
+ftype= c(1,1)
+fcol=list(stage.cl = stage.col, lineage.cl= lineage.col)
+fheight<-list(); fheight[1:length(ftoplot)] = 0.10
+#Voila!!
+panelmap::circomap(circo.dat[1:6], gtoplot, gcol, gheight, ftoplot, ftype, fcol, fheight, NA.flag=TRUE)
+panelmap::circomap(circo.dat[7:12], gtoplot, gcol, gheight, ftoplot, ftype, fcol, fheight, NA.flag=TRUE)
+```
+
+
+### Met promoter vs RNA
+
+Let's take a look at the two platforms, RNA and Met promoter that are most informative for stage. 
+
+```{r}
+rnakk = solnk[["rna.mat"]]
+kkmetp = solnk[["met_promoter"]]
+kkAMImetpkk = round(aricode::AMI(kkmetp[names(stage)], stage),2)
+knitr::kable(table(kkmetp[names(stage)], stage), "html", caption=paste0("Met promoter vs stage, AMI=",kkAMImetpkk), row.names=TRUE )
+```
+Let's see how this looks with RNA solution 
+
+```{r}
+kkAMImetprna = round(aricode::AMI(kkmetp[names(rnakk)], rnakk),2)
+knitr::kable(table(kkmetp[names(rnakk)], rnakk), "html", caption=paste0("Met promoter vs RNA, AMI=",kkAMImetprna), row.names=TRUE )
+```
+
+Interesting to see that even though individual RNA MSOAIC solution (k=5) and Met promoter (k=4) are both informative towards stage with AMI `r AMIrnakkstage` and `r kkAMImetpkk` respectively, they are conveying slightly different underlying information classifying stage. AMI RNA with Met promoter `r kkAMImetprna`
+
+Note, that due to missing-ness in Met Promoter data, we didn't perform an overlap between common features between RNA and Met Promoter . 
+
+## Conclusion
+
+* MOSAIC finds supervised clusters, with an outcome of interest in mind. Where kmeans might give mixed results. Supervised clustering is much more efficient and helps in sorting out different signals 
+
+* MOSAIC can run with missing data. However interpretations should be made carefully.
+ 
+* MOSAIC reduces computation space from sample x feature to sample x sample
+
+* Efficient in dealing with noisy features
+
+## References
+
+1. Arora A, Olshen AB, Seshan VE, and Shen R. Pan-cancer identification of clinically relevant genomic subtypes using outcome-weighted integrative clustering. Biorxiv
+
+2. Xing, E. P., Jordan, M. I., Russell, S. J., & Ng, A. Y. (2003). Distance metric learning with application to clustering with side-information. In Advances in neural information processing systems (pp. 521-528).
