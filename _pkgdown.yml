@@ -9,7 +9,7 @@ home:
   title: "BIRSBIO2020.scNMTseq.MOSAIC"
   type: inverse
 
-
+]
 navbar:
   right:
    - icon: fa-github
