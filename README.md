@@ -3,12 +3,6 @@
 
 As a  part of BIRSBIO 2020 Hackathon, MOSAIC was run on [scNMTseq data](https://www.nature.com/articles/s41467-018-03149-4) 
 
-To see the analysis check out the article - 
-* 
-
-Top 5000 features, and how to run MOSAIC are briefly explained here - 
-* 
-
 For more details about MOSAIC see - [MOSAIC GitHub Repo](https://github.com/arorarshi/MOSAIC). 
 
 # What is MOSAIC and how did we address the hackathon challeneges?

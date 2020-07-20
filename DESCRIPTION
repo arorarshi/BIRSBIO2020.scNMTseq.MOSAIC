@@ -13,7 +13,7 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.0
 Depends: R (>= 3.6)
-Imports: RColorBrewer, ggsci, aricode, knitr
+Imports: RColorBrewer, ggsci, aricode, knitr, panelmap
 Remotes: arorarshi/MOSAIC, arorarshi/panelmap
 Suggests: knitr, rmarkdown
 URL: https://arorarshi.github.io/BIRSBIO2020.scNMTseq.MOSAIC/
