@@ -14,7 +14,7 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.0
 Depends: R (>= 3.6)
 Imports: RColorBrewer, ggsci, aricode, knitr, panelmap
-Remotes: arorarshi/MOSAIC, arorarshi/panelmap
+Remotes: r-lib/pkgdown, arorarshi/MOSAIC, arorarshi/panelmap
 Suggests:rmarkdown
 URL: https://arorarshi.github.io/BIRSBIO2020.scNMTseq.MOSAIC/
   BugReports: https://github.com/arorarshi/BIRSBIO2020.scNMTseq.MOSAIC/issues/new
